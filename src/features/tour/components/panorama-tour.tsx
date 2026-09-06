@@ -38,7 +38,7 @@ function direction(lon: number, lat: number): THREE.Vector3 {
   return new THREE.Vector3(-Math.sin(lon) * c, Math.sin(lat), -Math.cos(lon) * c);
 }
 
-function PanoSphere({ url, yaw }: { url: string; yaw: number }) {
+function PanoSphere({ url, yaw, onReady }: { url: string; yaw: number; onReady?: () => void }) {
   const texture = useLoader(THREE.TextureLoader, url);
   useEffect(() => {
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -47,7 +47,8 @@ function PanoSphere({ url, yaw }: { url: string; yaw: number }) {
     texture.wrapS = THREE.RepeatWrapping;
     texture.repeat.x = -1;
     texture.needsUpdate = true;
-  }, [texture]);
+    onReady?.();
+  }, [texture, onReady]);
   // Back faces + mirrored texture: image centre lands on +X, image-right on +Z,
   // so rotating by (yaw + π/2) about Y puts the centre on the scene forward
   // direction and keeps left/right correct.
@@ -131,13 +132,19 @@ export function PanoramaTour({ pkg, initialNodeId, autoplay = false, onNodeChang
   const [playing, setPlaying] = useState(autoplay);
   const current = byId.get(currentId) ?? nodes[0];
   const previous = previousId ? byId.get(previousId) : undefined;
+  const [readyId, setReadyId] = useState<string | null>(null);
+  const onCurrentReady = useCallback(() => setReadyId(currentId), [currentId]);
+  const ready = readyId === currentId;
 
-  // Warm the texture cache for every node so hops are instant after the first load.
+  // Once the first panorama is on screen, warm the cache for the others so hops are instant.
   useEffect(() => {
-    const urls = nodes.map((n) => fileUrl(n.pano_url));
-    const timer = setTimeout(() => useLoader.preload(THREE.TextureLoader, urls), 300);
+    if (readyId === null) return;
+    const urls = nodes.filter((n) => n.id !== readyId).map((n) => fileUrl(n.pano_url));
+    const timer = setTimeout(() => useLoader.preload(THREE.TextureLoader, urls), 200);
     return () => clearTimeout(timer);
-  }, [nodes]);
+    // only the first ready node should trigger the warm-up
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readyId === null, nodes]);
   const look = useRef<LookState>({
     lon: current?.yaw ?? 0,
     lat: 0,
@@ -162,17 +169,17 @@ export function PanoramaTour({ pkg, initialNodeId, autoplay = false, onNodeChang
     [byId, currentId, onNodeChange],
   );
 
-  // autoplay along the route
+  // autoplay along the route: the dwell only starts once the panorama is on screen
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || !ready) return;
     const seconds = pkg.tour.autoplay_seconds_per_node || 6;
-    const timer = setInterval(() => {
+    const timer = setTimeout(() => {
       const route = pkg.tour.route;
       const i = route.indexOf(currentId);
       goTo(route[(i + 1) % route.length]);
     }, seconds * 1000);
-    return () => clearInterval(timer);
-  }, [playing, currentId, pkg.tour, goTo]);
+    return () => clearTimeout(timer);
+  }, [playing, ready, currentId, pkg.tour, goTo]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     look.current.dragging = true;
@@ -204,9 +211,6 @@ export function PanoramaTour({ pkg, initialNodeId, autoplay = false, onNodeChang
   if (!current) {
     return <div className={className}>No panoramas in this tour yet.</div>;
   }
-  const [loadingFirst, setLoadingFirst] = [previous === undefined && !firstLoaded.current, () => {}];
-  void loadingFirst;
-  void setLoadingFirst;
 
   const links = current.links.map((id) => byId.get(id)).filter((n): n is TourNode => Boolean(n));
 
@@ -226,10 +230,18 @@ export function PanoramaTour({ pkg, initialNodeId, autoplay = false, onNodeChang
           {/* While the next panorama decodes, keep showing the one we came from. */}
           <Suspense
             fallback={
-              previous ? <PanoSphere key={`prev-${previous.id}`} url={fileUrl(previous.pano_url)} yaw={previous.yaw} /> : null
+              previous ? (
+                <PanoSphere key={`prev-${previous.id}`} url={fileUrl(previous.pano_url)} yaw={previous.yaw} />
+              ) : (
+                <Html center>
+                  <span className="whitespace-nowrap rounded-full bg-white/15 px-3 py-1 text-xs text-white/80">
+                    Loading panorama…
+                  </span>
+                </Html>
+              )
             }
           >
-            <PanoSphere key={current.id} url={fileUrl(current.pano_url)} yaw={current.yaw} />
+            <PanoSphere key={current.id} url={fileUrl(current.pano_url)} yaw={current.yaw} onReady={onCurrentReady} />
           </Suspense>
           {links.map((to) => (
             <Hotspot key={to.id} from={current} to={to} onSelect={goTo} />
@@ -244,6 +256,7 @@ export function PanoramaTour({ pkg, initialNodeId, autoplay = false, onNodeChang
         </span>
         <span className="rounded-full bg-black/35 px-3 py-0.5 text-[11px] uppercase tracking-wider text-white/80">
           {pkg.quality === "final" ? "final render" : "preview render"} · drag to look · scroll to zoom
+          {!ready ? " · loading…" : ""}
         </span>
       </div>
 
