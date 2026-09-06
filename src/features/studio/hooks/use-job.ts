@@ -30,17 +30,22 @@ export function useJob(): UseJobResult {
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const alive = useRef(true);
-  useEffect(
-    () => () => {
+  const polling = useRef<string | null>(null);
+  useEffect(() => {
+    // React StrictMode and Fast Refresh run cleanup + effect again on the same
+    // instance, so "alive" must be re-armed here, not only set false below.
+    alive.current = true;
+    return () => {
       alive.current = false;
-    },
-    [],
-  );
+      polling.current = null;
+    };
+  }, []);
 
   const poll = useCallback(async (jobId: string): Promise<JobDto | null> => {
     let delay = 1000;
+    polling.current = jobId;
     for (;;) {
-      if (!alive.current) return null;
+      if (!alive.current || polling.current !== jobId) return null;
       let data: { job: JobDto; events: EventDto[] };
       try {
         data = await getJob(jobId);
@@ -99,11 +104,20 @@ export function useJob(): UseJobResult {
   );
 
   const reset = useCallback(() => {
+    polling.current = null;
     setJob(null);
     setEvents([]);
     setError(null);
     setRunning(false);
   }, []);
+
+  // If a remount killed the poll while a job was still in flight, pick it up
+  // again: the job kept running on the backend.
+  useEffect(() => {
+    if (job && !isTerminal(job.status) && polling.current !== job.job_id) {
+      void attach(job.job_id);
+    }
+  }, [job, attach]);
 
   return { job, events, running, error, run, attach, reset };
 }
