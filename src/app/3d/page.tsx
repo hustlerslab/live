@@ -9,9 +9,15 @@ export const metadata: Metadata = {
 };
 
 /**
- * The raw viewer against the seed apartment. The Studio route (/) reaches
- * the same component with a freshly generated scene.
+ * The raw viewer. Without a query it shows the seed apartment; `?scene=<id>`
+ * opens any scene the engine holds (compiled project scenes included). The
+ * Studio route (/) reaches the same component with a freshly generated scene.
  */
-export default function Page() {
-  return <Walkthrough3DView />;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ scene?: string }>;
+}) {
+  const { scene } = await searchParams;
+  return <Walkthrough3DView sceneId={scene || undefined} />;
 }
