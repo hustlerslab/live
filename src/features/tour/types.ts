@@ -40,6 +40,7 @@ export interface TourPackage {
     route: string[];
     autoplay_seconds_per_node: number;
   };
+  film?: { mp4_url: string; poster_url?: string; profile?: string };
   generated_at: string;
 }
 

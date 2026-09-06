@@ -40,6 +40,7 @@ import { useJob } from "@/features/studio/hooks/use-job";
 import type { AnalysisDto, AnalysisPatch, ProjectDetail, ProjectRecord, RoomHint } from "@/features/studio/types";
 import { getTour } from "@/features/tour/api/tour-api";
 import { PanoramaTour } from "@/features/tour/components/panorama-tour";
+import { FilmPlayer } from "@/features/tour/components/share-view";
 import type { TourPackage } from "@/features/tour/types";
 import { Walkthrough3DView } from "@/features/walkthrough3d/components/walkthrough3d-view";
 
@@ -157,7 +158,8 @@ export function WalkthroughStudio() {
   const finalJob = useJob();
   const [buildPreviewUrl, setBuildPreviewUrl] = useState<string | null>(null);
   const [tour, setTour] = useState<TourPackage | null>(null);
-  const [experienceMode, setExperienceMode] = useState<"explore" | "tour">("tour");
+  const [experienceMode, setExperienceMode] = useState<"explore" | "tour" | "film">("tour");
+  const filmJob = useJob();
 
   // Step 8 — designer
   const [connectedDesigner, setConnectedDesigner] = useState<string | null>(null);
@@ -382,6 +384,16 @@ export function WalkthroughStudio() {
       await refreshDetail(project.project_id);
     }
   }, [project, finalJob, refreshDetail]);
+
+  const runFilm = useCallback(async () => {
+    if (!project) return;
+    const job = await filmJob.run(() => api.film(project.project_id, { profile: "preview" }));
+    if (job?.status === "SUCCEEDED") {
+      setTour(await getTour(project.project_id));
+      setExperienceMode("film");
+      await refreshDetail(project.project_id);
+    }
+  }, [project, filmJob, refreshDetail]);
 
   const rendering = buildJob.running || previewJob.running;
   const shareUrl = project && typeof window !== "undefined" ? `${window.location.origin}/w/${project.project_id}` : "";
@@ -615,14 +627,18 @@ export function WalkthroughStudio() {
           <StepShell title="Walk through your space" subtitle="Explore it live in 3D, or take the rendered 360° tour room by room.">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex gap-1 rounded-full border p-1" role="tablist" aria-label="View mode">
-                {(["tour", "explore"] as const).map((m) => (
+                {(["tour", "explore", "film"] as const).map((m) => (
                   <button key={m} role="tab" type="button" aria-selected={experienceMode === m} onClick={() => setExperienceMode(m)} className={`rounded-full px-4 py-1.5 caption font-medium transition ${experienceMode === m ? "bg-ink text-cream" : "text-ink-muted hover:text-ink-soft"}`}>
-                    {m === "tour" ? "360° Tour" : "Explore in 3D"}
+                    {m === "tour" ? "360° Tour" : m === "explore" ? "Explore in 3D" : "Film"}
                   </button>
                 ))}
               </div>
               <div className="flex items-center gap-2">
                 {tour ? <span className="caption text-ink-muted">{tour.quality === "final" ? "Final quality" : "Preview quality"}</span> : null}
+                <button type="button" onClick={() => void runFilm()} disabled={filmJob.running || !tour} className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 body-sm text-ink-muted hover:bg-muted disabled:opacity-40">
+                  {filmJob.running ? <Loader2 className="size-3.5 animate-spin" /> : <Film className="size-3.5" />}
+                  {filmJob.running ? "Filming…" : tour?.film ? "Re-render film" : "Render a film"}
+                </button>
                 <button type="button" onClick={() => void runFinal()} disabled={finalJob.running || !tour} className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 body-sm text-ink-muted hover:bg-muted disabled:opacity-40">
                   {finalJob.running ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
                   {finalJob.running ? "Rendering final quality…" : "Render final quality"}
@@ -630,8 +646,11 @@ export function WalkthroughStudio() {
               </div>
             </div>
             {finalJob.job || finalJob.error ? <JobProgress title="Final 4K panoramas and hero stills" job={finalJob.job} events={finalJob.events} error={finalJob.error} onRetry={() => void runFinal()} compact={!finalJob.running} /> : null}
+            {filmJob.job || filmJob.error ? <JobProgress title="Filming the guided tour" job={filmJob.job} events={filmJob.events} error={filmJob.error} onRetry={() => void runFilm()} compact={!filmJob.running} /> : null}
             {experienceMode === "tour" ? (
               tour ? <PanoramaTour pkg={tour} autoplay className="h-[560px] w-full rounded-lg" /> : <p className="body-sm text-ink-muted">No tour rendered yet.</p>
+            ) : experienceMode === "film" ? (
+              tour ? <div className="flex justify-center rounded-lg bg-black"><FilmPlayer pkg={tour} className="max-h-[560px] w-full rounded-lg" /></div> : null
             ) : (
               <Walkthrough3DView key={sceneId ?? "seed"} sceneId={sceneId ?? undefined} />
             )}

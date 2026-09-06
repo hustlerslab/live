@@ -9,11 +9,27 @@ import { useEffect, useState } from "react";
 
 import { Walkthrough3DView } from "@/features/walkthrough3d/components/walkthrough3d-view";
 
-import { getTour } from "../api/tour-api";
+import { fileUrl, getTour } from "../api/tour-api";
 import { TourApiError, type TourPackage } from "../types";
 import { PanoramaTour } from "./panorama-tour";
 
-type Mode = "tour" | "explore";
+type Mode = "tour" | "explore" | "film";
+
+export function FilmPlayer({ pkg, className }: { pkg: TourPackage; className?: string }) {
+  if (!pkg.film?.mp4_url) return <p className="text-sm text-ink-muted">No film rendered yet.</p>;
+  return (
+    <video
+      className={className}
+      controls
+      playsInline
+      preload="metadata"
+      poster={pkg.film.poster_url ? fileUrl(pkg.film.poster_url) : undefined}
+      src={fileUrl(pkg.film.mp4_url)}
+    >
+      Your browser cannot play this video.
+    </video>
+  );
+}
 
 export function ShareView({ projectId }: { projectId: string }) {
   const [pkg, setPkg] = useState<TourPackage | null>(null);
@@ -73,7 +89,7 @@ export function ShareView({ projectId }: { projectId: string }) {
           </p>
         </div>
         <div className="flex gap-1 rounded-full border border-black/10 p-1" role="tablist" aria-label="View mode">
-          {(["tour", "explore"] as Mode[]).map((m) => (
+          {(["tour", "explore", ...(pkg.film?.mp4_url ? (["film"] as Mode[]) : [])] as Mode[]).map((m) => (
             <button
               key={m}
               role="tab"
@@ -84,7 +100,7 @@ export function ShareView({ projectId }: { projectId: string }) {
                 mode === m ? "bg-black text-white" : "text-ink-muted hover:text-black"
               }`}
             >
-              {m === "tour" ? "360° Tour" : "Explore in 3D"}
+              {m === "tour" ? "360° Tour" : m === "explore" ? "Explore in 3D" : "Film"}
             </button>
           ))}
         </div>
@@ -92,6 +108,10 @@ export function ShareView({ projectId }: { projectId: string }) {
       <div className="min-h-0 flex-1 px-5 pb-5">
         {mode === "tour" ? (
           <PanoramaTour pkg={pkg} autoplay className="h-full w-full rounded-2xl" />
+        ) : mode === "film" ? (
+          <div className="flex h-full items-center justify-center rounded-2xl bg-black">
+            <FilmPlayer pkg={pkg} className="max-h-full w-full rounded-2xl" />
+          </div>
         ) : (
           <div className="h-full overflow-auto rounded-2xl border border-black/10">
             <Walkthrough3DView sceneId={pkg.explore.scene_id} />

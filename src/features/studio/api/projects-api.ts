@@ -122,6 +122,8 @@ export const preview = (projectId: string, opts: { force?: boolean; profile?: st
   enqueue(`/projects/${projectId}/preview`, { force: false, profile: "pano_preview", ...opts });
 export const walkthrough = (projectId: string, opts: { force?: boolean; profile?: string; hero_stills?: number } = {}) =>
   enqueue(`/projects/${projectId}/walkthrough`, { force: false, profile: "pano_final", hero_stills: 2, ...opts });
+export const film = (projectId: string, opts: { force?: boolean; profile?: string } = {}) =>
+  enqueue(`/projects/${projectId}/film`, { force: false, profile: "preview", ...opts });
 
 // ── reads ────────────────────────────────────────────────────────────────
 
