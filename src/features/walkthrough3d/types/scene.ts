@@ -229,6 +229,7 @@ export type PatchOperation =
   | { type: "remove_object"; object_id: string }
   | { type: "move_object"; object_id: string; position: Vec3 }
   | { type: "rotate_object"; object_id: string; rotation_y: number }
-  | { type: "update_object"; object_id: string; color?: string; locked?: boolean };
+  | { type: "update_object"; object_id: string; color?: string; locked?: boolean }
+  | { type: "replace_asset"; object_id: string; asset_id: string };
 
 export type CameraMode = "orbit" | "first_person" | "tour";

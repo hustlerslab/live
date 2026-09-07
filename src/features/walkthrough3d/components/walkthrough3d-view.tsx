@@ -35,6 +35,7 @@ import { formatINR } from "@/lib/format";
 
 import * as api from "../api/aether-api";
 import type {
+  CatalogItem,
   AetherHealth,
   AetherScene,
   CameraMode,
@@ -77,6 +78,9 @@ export function Walkthrough3DView({
   const [proposal, setProposal] = useState<ProposalPreview | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [addRoomId, setAddRoomId] = useState<string>("");
+  const [addAssetId, setAddAssetId] = useState<string>("");
 
   const walkWorld = useMemo(
     () => (scene ? buildWalkWorld(scene) : null),
@@ -111,6 +115,16 @@ export function Walkthrough3DView({
     void loadAll(controller.signal);
     return () => controller.abort();
   }, [loadAll]);
+
+  useEffect(() => {
+    if (engineState !== "up") return;
+    const controller = new AbortController();
+    api
+      .getCatalog(controller.signal)
+      .then((items) => setCatalog(items))
+      .catch(() => setCatalog([]));
+    return () => controller.abort();
+  }, [engineState]);
 
   /* ── Scene refresh after any mutation ────────────────────────────────── */
 
@@ -197,6 +211,76 @@ export function Walkthrough3DView({
       ]),
     );
   }, [scene, selectedObject, runAction]);
+
+  const replaceSelected = useCallback(
+    (assetId: string) => {
+      if (!scene || !selectedObject || !assetId) return;
+      void runAction(() =>
+        api.commitPatch(scene.scene_id, scene.version, [
+          { type: "replace_asset", object_id: selectedObject.object_id, asset_id: assetId },
+        ]),
+      );
+    },
+    [scene, selectedObject, runAction],
+  );
+
+  const recolourSelected = useCallback(
+    (color: string) => {
+      if (!scene || !selectedObject) return;
+      void runAction(() =>
+        api.commitPatch(scene.scene_id, scene.version, [
+          { type: "update_object", object_id: selectedObject.object_id, color },
+        ]),
+      );
+    },
+    [scene, selectedObject, runAction],
+  );
+
+  /**
+   * Add a catalog piece: the engine's planner finds a valid spot for the type
+   * (validated like every edit), then the chosen model is swapped in if the
+   * planner picked a different one of the same type.
+   */
+  const addFromCatalog = useCallback(async () => {
+    if (!scene || !addAssetId) return;
+    const item = catalog.find((c) => c.asset_id === addAssetId);
+    const room = scene.rooms.find((r) => r.room_id === addRoomId) ?? scene.rooms[0];
+    if (!item || !room) return;
+    setBusy(true);
+    setActionError(null);
+    try {
+      const before = new Set(scene.objects.map((o) => o.object_id));
+      const typeLabel = item.semantic_type.replace(/_/g, " ");
+      const preview = await api.createProposal(scene.scene_id, "add a " + typeLabel + " to " + room.name);
+      const applied = await api.applyProposal(scene.scene_id, preview.proposal.proposal_id);
+      const added = applied.scene.objects.find(
+        (o) => !before.has(o.object_id) && o.semantic_type === item.semantic_type,
+      );
+      if (!added) {
+        setActionError("The planner found no valid spot for a " + typeLabel + " in " + room.name + ".");
+        await applySceneUpdate(applied.scene, applied.history);
+        return;
+      }
+      if (added.asset_id !== item.asset_id) {
+        const swapped = await api.commitPatch(applied.scene.scene_id, applied.scene.version, [
+          { type: "replace_asset", object_id: added.object_id, asset_id: item.asset_id },
+        ]);
+        await applySceneUpdate(swapped.scene, swapped.history);
+      } else {
+        await applySceneUpdate(applied.scene, applied.history);
+      }
+      setSelectedId(added.object_id);
+    } catch (err) {
+      if (err instanceof AetherApiError) {
+        const detail = err.violations.map((v) => v.message).join(" ");
+        setActionError(detail || err.message);
+      } else {
+        setActionError(err instanceof Error ? err.message : String(err));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }, [scene, addAssetId, addRoomId, catalog, applySceneUpdate]);
 
   /* ── Design proposals ────────────────────────────────────────────────── */
 
@@ -571,6 +655,38 @@ export function Walkthrough3DView({
                       <NudgeButton label="↓" onClick={() => nudge(0, 0.25)} disabled={busy} />
                       <NudgeButton label="→" onClick={() => nudge(0.25, 0)} disabled={busy} />
                     </div>
+                    <label className="flex flex-col gap-1">
+                      <span className="caption text-ink-muted">Replace with</span>
+                      <select
+                        value={selectedObject.asset_id ?? ""}
+                        disabled={busy}
+                        onChange={(e) => replaceSelected(e.target.value)}
+                        className="rounded-md border bg-transparent px-2 py-1 body-sm text-ink-soft"
+                      >
+                        {catalog
+                          .filter((c) => c.semantic_type === selectedObject.semantic_type)
+                          .sort((a, b) => Number(Boolean(b.model_url)) - Number(Boolean(a.model_url)))
+                          .map((c) => (
+                            <option key={c.asset_id} value={c.asset_id}>
+                              {c.name}
+                              {c.model_url ? " · 3D model" : " · simple"}
+                              {c.price_inr ? " · " + formatINR(c.price_inr) : ""}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <span className="caption text-ink-muted">Colour</span>
+                      <input
+                        type="color"
+                        value={/^#[0-9a-fA-F]{6}$/.test(selectedObject.color) ? selectedObject.color : "#8a7862"}
+                        disabled={busy}
+                        onChange={(e) => recolourSelected(e.target.value)}
+                        className="h-7 w-10 cursor-pointer rounded border bg-transparent"
+                        aria-label="Object colour"
+                      />
+                      <span className="caption tabular text-ink-muted">{selectedObject.color}</span>
+                    </label>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -603,6 +719,47 @@ export function Walkthrough3DView({
                   : "Switch to Orbit mode to select and edit objects."}
               </p>
             )}
+          </div>
+
+          {/* Add furniture from the catalog */}
+          <div className="flex flex-col gap-2 rounded-lg border p-4">
+            <h2 className="body-sm font-medium text-ink-soft">Add furniture</h2>
+            <div className="flex flex-col gap-2">
+              <select
+                value={addRoomId || scene.rooms[0]?.room_id || ""}
+                onChange={(e) => setAddRoomId(e.target.value)}
+                className="rounded-md border bg-transparent px-2 py-1 body-sm text-ink-soft"
+                aria-label="Room"
+              >
+                {scene.rooms.map((r) => (
+                  <option key={r.room_id} value={r.room_id}>{r.name}</option>
+                ))}
+              </select>
+              <select
+                value={addAssetId}
+                onChange={(e) => setAddAssetId(e.target.value)}
+                className="rounded-md border bg-transparent px-2 py-1 body-sm text-ink-soft"
+                aria-label="Catalog item"
+              >
+                <option value="">Choose a piece…</option>
+                {[...catalog]
+                  .sort((a, b) => a.semantic_type.localeCompare(b.semantic_type) || Number(Boolean(b.model_url)) - Number(Boolean(a.model_url)))
+                  .map((c) => (
+                    <option key={c.asset_id} value={c.asset_id}>
+                      {c.semantic_type.replace(/_/g, " ")} · {c.name}{c.model_url ? " (3D)" : ""}
+                    </option>
+                  ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => void addFromCatalog()}
+                disabled={busy || !addAssetId || mode !== "orbit"}
+                className="flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 body-sm text-ink-muted hover:bg-muted disabled:opacity-40"
+              >
+                <Box className="size-3.5" /> Place in room
+              </button>
+              <p className="caption text-ink-muted">The engine picks a valid spot; nudge or rotate it afterwards.</p>
+            </div>
           </div>
 
           {/* Rooms */}
