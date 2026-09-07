@@ -47,6 +47,9 @@ export interface SceneObject {
   position: Vec3;
   rotation_y: number;
   scale: Vec3;
+  /** Hybrid pipeline: how the model is sourced and which style material dresses it. */
+  source_strategy?: "local_asset" | "local_modified" | "procedural" | "generated";
+  material_overrides?: Record<string, string>;
   dimensions: Vec3;
   color: string;
   source: string;
@@ -63,6 +66,8 @@ export interface SavedView {
 }
 
 export interface AetherScene {
+  /** Moodboard direction compiled into the scene (palette order: wall, floor, upholstery, accent, accent). */
+  style?: { name?: string; tags?: string[]; palette?: string[]; materials?: string[]; lighting_mood?: string } | null;
   scene_id: string;
   project_id: string;
   version: number;

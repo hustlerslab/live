@@ -201,14 +201,23 @@ function WallSegmentMesh({
   segment,
   position,
   yaw,
+  tint,
 }: {
   wall: Wall;
   segment: WallSegment;
   position: [number, number, number];
   yaw: number;
+  tint?: string | null;
 }) {
   // Box UVs run 0–1 per face; tile by the segment's physical size.
-  const material = useBoxMaterial(wall.material, segment.length, segment.height);
+  const base = useBoxMaterial(wall.material, segment.length, segment.height);
+  // Moodboard wall colour: multiply the plaster by the palette's first tone.
+  const material = useMemo(() => {
+    if (!tint) return base;
+    const m = base.clone();
+    m.color.copy(base.color).lerp(new THREE.Color(tint), 0.7);
+    return m;
+  }, [base, tint]);
   return (
     <mesh position={position} rotation={[0, yaw, 0]} material={material} castShadow receiveShadow>
       <boxGeometry args={[segment.length, segment.height, wall.thickness]} />
@@ -216,7 +225,7 @@ function WallSegmentMesh({
   );
 }
 
-function WallMesh({ wall, openings }: { wall: Wall; openings: Opening[] }) {
+function WallMesh({ wall, openings, tint }: { wall: Wall; openings: Opening[]; tint?: string | null }) {
   const { segments, yaw, length } = useMemo(() => {
     const dx = wall.end[0] - wall.start[0];
     const dz = wall.end[1] - wall.start[1];
@@ -239,6 +248,7 @@ function WallMesh({ wall, openings }: { wall: Wall; openings: Opening[] }) {
             wall={wall}
             segment={segment}
             yaw={yaw}
+            tint={tint}
             position={[
               wall.start[0] + dirX * segment.center,
               segment.bottom + segment.height / 2,
@@ -523,6 +533,8 @@ function BoxShape({ obj }: { obj: SceneObject }) {
 
 /* ── Real GLB assets ───────────────────────────────────────────────────── */
 
+const FABRIC_TYPES = new Set(["sofa", "loveseat", "armchair", "ottoman", "chair", "bed", "bar_stool", "pillows", "rug", "curtains"]);
+
 function GlbModel({ url, obj }: { url: string; obj: SceneObject }) {
   const gltf = useGLTF(url);
   const normalized = useMemo(() => {
@@ -542,14 +554,36 @@ function GlbModel({ url, obj }: { url: string; obj: SceneObject }) {
     const center = new THREE.Vector3();
     scaledBox.getCenter(center);
     clone.position.set(-center.x, -scaledBox.min.y, -center.z);
+    let largest: THREE.Mesh | null = null;
+    let largestSize = 0;
     clone.traverse((node) => {
       if (node instanceof THREE.Mesh) {
         node.castShadow = true;
         node.receiveShadow = true;
+        node.geometry.computeBoundingBox();
+        const b = node.geometry.boundingBox;
+        if (b) {
+          const v = (b.max.x - b.min.x) * (b.max.y - b.min.y) * (b.max.z - b.min.z);
+          if (v > largestSize) {
+            largestSize = v;
+            largest = node;
+          }
+        }
       }
     });
+    // Moodboard fidelity: the upholstery of a fabric piece takes the planned colour.
+    if (largest && FABRIC_TYPES.has(obj.semantic_type) && obj.material_overrides?.primary) {
+      const mesh = largest as THREE.Mesh;
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      mesh.material = mats.map((m) => {
+        const c = (m as THREE.MeshStandardMaterial).clone();
+        if ("color" in c) (c as THREE.MeshStandardMaterial).color.set(obj.color);
+        return c;
+      }) as THREE.Material[];
+      if (!Array.isArray(mesh.material) || mesh.material.length === 1) mesh.material = (mesh.material as THREE.Material[])[0];
+    }
     return clone;
-  }, [gltf, obj.dimensions]);
+  }, [gltf, obj.dimensions, obj.semantic_type, obj.material_overrides, obj.color]);
   return <primitive object={normalized} />;
 }
 
@@ -694,6 +728,7 @@ export function SceneMeshes({
           key={wall.wall_id}
           wall={wall}
           openings={scene.openings.filter((o) => o.wall_id === wall.wall_id)}
+          tint={scene.style?.palette?.[0] ?? null}
         />
       ))}
       {scene.objects.map((obj) => (
