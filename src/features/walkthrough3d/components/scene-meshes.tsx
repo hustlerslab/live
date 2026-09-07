@@ -606,6 +606,7 @@ function useModelUrl(assetId: string | null): string | null {
 
 /** Ceiling-mounted objects hang from the ceiling; wall art sits at eye line. */
 function mountOffsetY(obj: SceneObject, ceilingHeight: number): number {
+  if (obj.mount === "surface") return 0; // the planner already put it on the host's top face
   const height = obj.dimensions[1] * obj.scale[1];
   if (obj.mount === "ceiling") return Math.max(0, ceilingHeight - height - 0.05) - obj.position[1];
   if (obj.mount === "wall" && obj.position[1] < 0.2) return 1.45 - height / 2;

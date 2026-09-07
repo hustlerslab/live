@@ -105,6 +105,14 @@ export interface RoomAnalysis {
 
 export interface SpottedObject {
   semantic_type: string;
+  /** Open reading (schema 1.1): free name, coarse family, where it sits and the photo crop. */
+  name?: string;
+  family?: string;
+  placement?: "floor" | "wall" | "ceiling" | "on_surface";
+  support?: string;
+  material?: string;
+  color?: string;
+  crop_ref?: string;
   room_id: string | null;
   count: number;
   confidence: number;

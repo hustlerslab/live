@@ -217,8 +217,12 @@ export function AnalysisReview({
             <p className="body-sm font-medium text-ink-soft">Spotted in your brief and photos</p>
             <div className="flex flex-wrap gap-1.5">
               {analysis.spotted_objects.length ? analysis.spotted_objects.map((o, i) => (
-                <span key={`${o.semantic_type}-${i}`} className="rounded-full bg-muted px-2 py-0.5 caption text-ink-soft" title={o.notes}>
-                  {human(o.semantic_type)}{o.count > 1 ? ` ×${o.count}` : ""}
+                <span
+                  key={`${o.semantic_type}-${i}`}
+                  className="rounded-full bg-muted px-2 py-0.5 caption text-ink-soft"
+                  title={[o.notes, o.placement === "on_surface" && o.support ? `on ${o.support}` : o.placement === "wall" ? "on the wall" : "", o.crop_ref ? "cut from your photo" : ""].filter(Boolean).join(" · ")}
+                >
+                  {o.name || human(o.semantic_type)}{o.count > 1 ? ` ×${o.count}` : ""}
                 </span>
               )) : <span className="caption text-ink-muted">Nothing specific yet.</span>}
             </div>

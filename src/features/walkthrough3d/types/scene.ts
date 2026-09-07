@@ -55,6 +55,11 @@ export interface SceneObject {
   source: string;
   locked: boolean;
   mount?: Mount;
+  /** Surfaces (spec 1.1): the object this one rests on, its open name, shape hint and photo texture. */
+  parent_id?: string | null;
+  name?: string;
+  shape?: string | null;
+  texture_ref?: string | null;
 }
 
 export interface SavedView {
@@ -145,7 +150,7 @@ export interface ProposalPreview {
   violations: Violation[];
 }
 
-export type Mount = "floor" | "ceiling" | "wall";
+export type Mount = "floor" | "ceiling" | "wall" | "surface";
 
 export interface CatalogItem {
   asset_id: string;
