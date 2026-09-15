@@ -95,26 +95,26 @@ export function AnalysisReview({
         </div>
         {moodboard?.reference_urls?.length ? (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {moodboard.reference_urls.slice(0, 6).map((u) => (
+            {moodboard.reference_urls.slice(0, 6).map((u, i) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={u} src={fileUrl(u)} alt="Reference" className="aspect-[4/3] w-full rounded-md object-cover" />
+              <img key={`${u}-${i}`} src={fileUrl(u)} alt="Reference" className="aspect-[4/3] w-full rounded-md object-cover" />
             ))}
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1.5" aria-label="Palette">
-            {(style?.palette ?? []).map((hex) => (
-              <span key={hex} title={hex} className="size-6 rounded-full border" style={{ backgroundColor: hex }} />
+            {(style?.palette ?? []).map((hex, i) => (
+              <span key={`${hex}-${i}`} title={hex} className="size-6 rounded-full border" style={{ backgroundColor: hex }} />
             ))}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {(style?.tags ?? []).map((t) => (
-              <span key={t} className="rounded-full border px-2 py-0.5 caption text-ink-muted">{human(t)}</span>
+            {(style?.tags ?? []).map((t, i) => (
+              <span key={`${t}-${i}`} className="rounded-full border px-2 py-0.5 caption text-ink-muted">{human(t)}</span>
             ))}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {(style?.materials ?? []).map((m) => (
-              <span key={m} className="rounded-sm bg-muted px-2 py-0.5 caption text-ink-soft">{human(m)}</span>
+            {(style?.materials ?? []).map((m, i) => (
+              <span key={`${m}-${i}`} className="rounded-sm bg-muted px-2 py-0.5 caption text-ink-soft">{human(m)}</span>
             ))}
           </div>
         </div>

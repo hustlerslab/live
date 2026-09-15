@@ -475,7 +475,9 @@ export function Walkthrough3DView({
           }}
         >
           <Canvas
-            shadows
+            // "percentage" = PCFShadowMap; three r185 deprecated PCFSoftShadowMap
+            // (what shadows={true} selects) and silently falls back to this anyway.
+            shadows="percentage"
             camera={{ position: [10, 8, 10], fov: 55 }}
             gl={{ antialias: true }}
             onPointerMissed={() => setSelectedId(null)}
