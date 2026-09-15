@@ -34,7 +34,7 @@ export function WatchWalkthroughModal({
             </div>
             <div>
               <h3 className="font-display text-lg font-bold text-[#1C1613]">
-                Ishana 3D Walkthrough Preview
+                Allure 3D Walkthrough Preview
               </h3>
               <p className="text-xs text-[#665A50]">
                 Experience your room transformed from photos to an interactive 3D space

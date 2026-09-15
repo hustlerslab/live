@@ -57,7 +57,7 @@ export function LandingStyleExplorer({ onSelectStyle }: StyleExplorerProps) {
             Explore interior concepts tailored to your taste.
           </h2>
           <p className="text-base text-[#5A4F46] mt-2">
-            Switch between design registers to see how Ishana adjusts materials, lighting, and spatial moods instantly.
+            Switch between design registers to see how Allure adjusts materials, lighting, and spatial moods instantly.
           </p>
         </div>
 

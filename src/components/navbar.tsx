@@ -34,10 +34,10 @@ export function Navbar({ onGetStarted }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 bg-[#FAF7F2]/90 backdrop-blur-md transition-all border-b border-[#EFE7DC]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-        {/* Brand Logo - ISHANA */}
+        {/* Brand Logo - ALLURE */}
         <Link href="/" className="group flex items-center gap-2">
           <span className="font-display text-2xl font-bold tracking-[0.3em] text-[#1C1613] transition-colors group-hover:text-[#79553D]">
-            ISHANA
+            ALLURE
           </span>
         </Link>
 

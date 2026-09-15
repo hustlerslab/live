@@ -675,7 +675,7 @@ export function WalkthroughStudio() {
         {step.id === "moodboard" ? (
           <StepShell
             title="Your moodboard"
-            subtitle="Ishana reads your photos and vision and composes a direction — rooms, palette, materials and light. This step is free; regenerate as often as you like."
+            subtitle="Allure reads your photos and vision and composes a direction — rooms, palette, materials and light. This step is free; regenerate as often as you like."
           >
             {analyzeJob.running || (!analysis && analyzeJob.job) ? (
               <JobProgress
@@ -780,7 +780,7 @@ export function WalkthroughStudio() {
               <div className="flex items-center justify-between rounded-2xl border border-[#E8DEC8] bg-[#F6EFE6] p-5 shadow-xs">
                 <div className="flex flex-col gap-1">
                   <p className="font-display text-lg font-bold text-[#1C1613]">
-                    {project?.name ?? "My Ishana Space"}
+                    {project?.name ?? "My Allure Space"}
                   </p>
                   <p className="text-xs text-[#5A4F46]">
                     {analysis ? `${analysis.analysis.rooms.length} rooms · ${analysis.style?.name.replace(/_/g, " ")}` : spaceType}
@@ -937,7 +937,7 @@ export function WalkthroughStudio() {
               <div className="flex items-center gap-3 rounded-2xl border border-[#E8DEC8] bg-[#F6EFE6] p-4">
                 <Check className="h-5 w-5 text-[#79553D]" />
                 <p className="text-sm font-bold text-[#1C1613]">
-                  “{project?.name ?? "My Ishana Space"}” is saved to My Projects.
+                  “{project?.name ?? "My Allure Space"}” is saved to My Projects.
                 </p>
               </div>
 

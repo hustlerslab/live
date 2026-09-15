@@ -64,7 +64,7 @@ export default function Page() {
               </div>
               <div>
                 <h3 className="font-display text-2xl font-bold text-[#1C1613]">
-                  Ishana Creation Studio
+                  Allure Creation Studio
                 </h3>
                 <p className="text-sm text-[#5A4F46] mt-0.5 font-medium">
                   Upload room photos & brief to generate your AI moodboard and 3D walkthrough
@@ -96,7 +96,7 @@ export default function Page() {
             Bring your vision to life before spending on construction
           </h3>
           <p className="text-base text-[#5A4F46] mt-3 leading-relaxed">
-            Ishana gives you absolute clarity on colors, materials, furniture layouts, and spatial feel with instant AI moodboards and 3D walkthroughs.
+            Allure gives you absolute clarity on colors, materials, furniture layouts, and spatial feel with instant AI moodboards and 3D walkthroughs.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
             <div className="p-6 rounded-3xl bg-[#FAF7F2] border border-[#E8DEC8] text-left shadow-xs hover:shadow-md transition-shadow">
@@ -148,7 +148,7 @@ export default function Page() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-[#38302A] pb-10">
             <div>
               <span className="font-display text-3xl font-bold tracking-[0.3em] text-white">
-                ISHANA
+                ALLURE
               </span>
               <p className="text-xs text-[#A89A8C] mt-1">
                 Visualize your dream space before you build it.
@@ -162,7 +162,7 @@ export default function Page() {
             </div>
           </div>
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#8C7B6D] gap-4">
-            <p>© {new Date().getFullYear()} ISHANA Walkthrough Engine. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} ALLURE Walkthrough Engine. All rights reserved.</p>
             <p>Designed for immersive interior visual concepts.</p>
           </div>
         </div>

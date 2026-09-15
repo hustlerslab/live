@@ -77,10 +77,14 @@ jobs:
           sudo systemctl is-active --quiet aether-frontend
           REMOTE
 
-      - name: Smoke test public IP
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
+      - name: Smoke test
         run: |
-          code=$(curl -sS -m 30 -o /dev/null -w '%{http_code}' "http://$EC2_HOST/")
-          echo "HTTP $code"
-          test "$code" -lt 400
+          # Hit the real vhost, not the bare IP: an IP request matches no
+          # server_name and falls through to nginx's default page, which
+          # returns 200 even when the app is down.
+          for host in theallureinteriors.com www.theallureinteriors.com; do
+            code=$(curl -sS -m 30 -o /tmp/body -w '%{http_code}' "https://$host/")
+            echo "$host -> HTTP $code"
+            test "$code" -lt 400
+            grep -q "ALLURE" /tmp/body || { echo "app content missing on $host"; exit 1; }
+          done

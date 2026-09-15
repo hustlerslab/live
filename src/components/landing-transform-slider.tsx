@@ -87,7 +87,7 @@ export function LandingTransformSlider({ onStartStudio }: { onStartStudio: () =>
               Slide to watch an empty room turn into 3D.
             </h2>
             <p className="text-base text-[#5A4F46] mt-2 max-w-xl">
-              Drag the interactive slider below to see how Ishana converts plain photos into photorealistic, walkable 3D environments.
+              Drag the interactive slider below to see how Allure converts plain photos into photorealistic, walkable 3D environments.
             </p>
           </div>
 
@@ -127,11 +127,11 @@ export function LandingTransformSlider({ onStartStudio }: { onStartStudio: () =>
           onTouchMove={handleTouchMove}
           className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl border border-[#E8DEC8] shadow-2xl select-none cursor-ew-resize group bg-[#1C1613]"
         >
-          {/* Background Layer: After (Ishana 3D Walkthrough) */}
+          {/* Background Layer: After (Allure 3D Walkthrough) */}
           <div className="absolute inset-0 w-full h-full">
             <Image
               src="/images/hero/transform_after.jpg"
-              alt="Ishana 3D Walkthrough Render"
+              alt="Allure 3D Walkthrough Render"
               fill
               className="object-cover pointer-events-none"
               priority
@@ -139,7 +139,7 @@ export function LandingTransformSlider({ onStartStudio }: { onStartStudio: () =>
             {/* Overlay Label Right */}
             <div className="absolute top-6 right-6 z-10 flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-md px-4 py-2 text-xs font-semibold text-white border border-white/20">
               <Sparkles className="h-3.5 w-3.5 text-[#E6C387]" />
-              <span>Ishana 3D Space (After)</span>
+              <span>Allure 3D Space (After)</span>
             </div>
 
             {/* Interactive Material Pins on the 3D Render */}

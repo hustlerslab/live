@@ -16,7 +16,7 @@ export function LandingPaths({ onSelectPath }: LandingPathsProps) {
             What are you here for?
           </h2>
           <p className="text-base text-[#5A4F46] mt-2 font-normal">
-            Choose your path and start creating with Ishana.
+            Choose your path and start creating with Allure.
           </p>
         </div>
 

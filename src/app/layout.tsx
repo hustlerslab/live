@@ -26,8 +26,8 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: {
-    default: "ISHANA — Visualize your dream space before you build it",
-    template: "%s · ISHANA",
+    default: "ALLURE — Visualize your dream space before you build it",
+    template: "%s · ALLURE",
   },
   description:
     "Turn your ideas, inspiration, and room images into beautiful visual concepts and immersive 3D spaces.",
