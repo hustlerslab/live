@@ -71,47 +71,16 @@ jobs:
           git checkout -B main origin/main
           npm ci
           npm run build
-          if ! command -v pm2 >/dev/null 2>&1; then
-            sudo npm install --global pm2
-          fi
-          if pm2 describe aether-frontend >/dev/null 2>&1; then
-            pm2 restart aether-frontend --update-env
-          else
-            pm2 start npm --name aether-frontend -- start
-          fi
-          pm2 save
-          REMOTEname: Deploy
+          sudo systemctl daemon-reload
+          sudo systemctl enable aether-frontend
+          sudo systemctl restart aether-frontend
+          sudo systemctl is-active --quiet aether-frontend
+          REMOTE
 
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy over SSH
+      - name: Smoke test public IP
         env:
-          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          HOST: ${{ secrets.EC2_HOST }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          ssh -i ~/.ssh/id_ed25519 ec2-user@"$HOST" 'sudo /usr/local/bin/deploy-live.sh'
-
-      - name: Smoke test
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-        run: |
-          # Hits the server directly so the test reflects the deploy, not DNS state.
-          code=$(curl -sS -m 30 --resolve ishanaai.theallureinteriors.com:443:"$HOST" \
-                 -o /dev/null -w '%{http_code}' https://ishanaai.theallureinteriors.com/)
+          code=$(curl -sS -m 30 -o /dev/null -w '%{http_code}' "http://$EC2_HOST/")
           echo "HTTP $code"
-          [ "$code" -lt 400 ]
+          test "$code" -lt 400
