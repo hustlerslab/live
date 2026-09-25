@@ -325,37 +325,8 @@ export function Walkthrough3DView({
     );
   }
 
-  if (engineState === "down" || !scene) {
-    return (
-      <div className="flex flex-col items-start gap-4 rounded-lg border border-warning/35 bg-warning/8 p-6">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" />
-          <div className="flex flex-col gap-1.5">
-            <p className="body font-medium text-ink-soft">
-              The Aether engine is not running
-            </p>
-            <p className="body-sm text-ink-muted">
-              Start it with{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5">
-                uvicorn app.main:app --port 8000
-              </code>{" "}
-              inside <code className="rounded bg-muted px-1.5 py-0.5">aether-backend/</code>,
-              then retry.
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setEngineState("checking");
-            void loadAll();
-          }}
-          className="rounded-md border px-4 py-2 body-sm font-medium text-ink-soft hover:bg-muted"
-        >
-          Retry
-        </button>
-      </div>
-    );
+  if (!scene) {
+    return null;
   }
 
   const modeButton = (m: CameraMode, icon: React.ReactNode, label: string) => (

@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Play, Home, Sparkles, Box, Upload } from "lucide-react";
 
 interface LandingHeroProps {
-  onGetStarted: () => void;
+  onGetStarted?: () => void;
   onWatchWalkthrough: () => void;
 }
 
@@ -39,13 +40,19 @@ export function LandingHero({ onGetStarted, onWatchWalkthrough }: LandingHeroPro
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <button
-                onClick={onGetStarted}
-                className="group flex items-center gap-2.5 rounded-full bg-[#79553D] px-7 py-3.5 text-base font-medium text-white shadow-md transition-all hover:bg-[#64442F] hover:shadow-lg active:scale-[0.98]"
+              <Link
+                href="/login"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                  onGetStarted?.();
+                }}
+                className="group flex items-center gap-2.5 rounded-full bg-[#79553D] px-7 py-3.5 text-base font-medium text-white shadow-md transition-all hover:bg-[#64442F] hover:shadow-lg active:scale-[0.98] cursor-pointer"
               >
                 <span>Get Started</span>
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </button>
+              </Link>
 
               <button
                 onClick={onWatchWalkthrough}

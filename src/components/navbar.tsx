@@ -1,15 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, Menu, User, X } from "lucide-react";
 
 interface NavbarProps {
   onGetStarted?: () => void;
 }
 
+interface UserSession {
+  name: string;
+  email: string;
+  role: "homeowner" | "designer";
+}
+
 export function Navbar({ onGetStarted }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem("allure_user");
+      if (stored) {
+        setUserSession(JSON.parse(stored));
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const handleNavClick = (targetId: string) => {
     setMobileMenuOpen(false);
@@ -71,12 +89,22 @@ export function Navbar({ onGetStarted }: NavbarProps) {
 
         {/* Right Actions */}
         <div className="hidden md:flex items-center gap-6">
-          <button
-            onClick={handleGetStartedClick}
-            className="text-sm font-medium text-[#2C241E] transition-colors hover:text-[#79553D]"
-          >
-            Log in
-          </button>
+          {userSession ? (
+            <div className="flex items-center gap-2.5 rounded-full bg-[#F6EFE6] px-4 py-1.5 border border-[#E8DEC8]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#79553D] text-white text-xs font-bold">
+                {userSession.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-xs font-bold text-[#1C1613]">{userSession.name}</span>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm font-medium text-[#2C241E] transition-colors hover:text-[#79553D]"
+            >
+              Log in
+            </Link>
+          )}
+
           <button
             onClick={handleGetStartedClick}
             className="group flex items-center gap-2 rounded-full bg-[#79553D] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#64442F] hover:shadow-md active:scale-[0.98]"
@@ -125,12 +153,20 @@ export function Navbar({ onGetStarted }: NavbarProps) {
               About
             </button>
             <div className="pt-3 border-t border-[#EFE7DC] flex flex-col gap-3">
-              <button
-                onClick={handleGetStartedClick}
-                className="w-full text-center py-2 text-sm font-medium text-[#2C241E]"
-              >
-                Log in
-              </button>
+              {userSession ? (
+                <div className="flex items-center gap-2.5 px-2 py-1">
+                  <User className="h-4 w-4 text-[#79553D]" />
+                  <span className="text-sm font-bold text-[#1C1613]">Signed in as {userSession.name}</span>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2 text-sm font-medium text-[#2C241E]"
+                >
+                  Log in
+                </Link>
+              )}
               <button
                 onClick={handleGetStartedClick}
                 className="flex items-center justify-center gap-2 w-full rounded-full bg-[#79553D] py-3 text-sm font-medium text-white shadow-sm"
@@ -145,3 +181,4 @@ export function Navbar({ onGetStarted }: NavbarProps) {
     </header>
   );
 }
+

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { LandingHero } from "@/components/landing-hero";
 import { LandingTransformSlider } from "@/components/landing-transform-slider";
@@ -9,52 +10,62 @@ import { LandingStyleExplorer } from "@/components/landing-style-explorer";
 import { LandingEstimator } from "@/components/landing-estimator";
 import { LandingFeatures } from "@/components/landing-features";
 import { WatchWalkthroughModal } from "@/components/watch-walkthrough-modal";
-import { WalkthroughStudio } from "@/features/walkthrough-studio/components/walkthrough-studio";
+import { WalkthroughStudio, type WalkthroughStudioHandle } from "@/features/walkthrough-studio/components/walkthrough-studio";
 import { Sparkles, ArrowRight, CheckCircle2, ShieldCheck, HeartHandshake } from "lucide-react";
 
 export default function Page() {
+  const router = useRouter();
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [, setSelectedPath] = useState<"space" | "designer" | null>(null);
+  const studioRef = useRef<WalkthroughStudioHandle>(null);
 
-  const scrollToStudio = () => {
-    const studioEl = document.getElementById("walkthrough-studio");
-    if (studioEl) {
-      studioEl.scrollIntoView({ behavior: "smooth" });
+  const handleNavigateToLogin = () => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
+    router.push("/login");
+  };
+
+  const handleStartNewProject = () => {
+    setIsStudioOpen(true);
+    setTimeout(() => {
+      studioRef.current?.startNewProject();
+    }, 50);
   };
 
   const handleSelectPath = (path: "space" | "designer") => {
     setSelectedPath(path);
-    scrollToStudio();
+    handleStartNewProject();
   };
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#1C1613]">
       {/* Top Navbar Header */}
-      <Navbar onGetStarted={scrollToStudio} />
+      <Navbar onGetStarted={handleStartNewProject} />
 
       {/* Hero Section */}
       <LandingHero
-        onGetStarted={scrollToStudio}
+        onGetStarted={handleNavigateToLogin}
         onWatchWalkthrough={() => setIsVideoModalOpen(true)}
       />
 
       {/* Interactive Before & After Room Transformation Slider */}
-      <LandingTransformSlider onStartStudio={scrollToStudio} />
+      <LandingTransformSlider onStartStudio={handleStartNewProject} />
 
       {/* Path Selection: "What are you here for?" */}
       <LandingPaths onSelectPath={handleSelectPath} />
 
       {/* Interactive Aesthetic Style Explorer */}
-      <LandingStyleExplorer onSelectStyle={scrollToStudio} />
+      <LandingStyleExplorer onSelectStyle={handleStartNewProject} />
 
       {/* Live Scope Calculator & Metrics */}
-      <LandingEstimator onStartStudio={scrollToStudio} />
+      <LandingEstimator onStartStudio={handleStartNewProject} />
 
       {/* Bottom Feature Highlights Bar */}
       <LandingFeatures />
 
-      {/* Interactive Walkthrough Studio Container */}
+      {/* Interactive Banner Section */}
       <section id="walkthrough-studio" className="py-16 border-t border-[#EFE7DC] bg-[#FAF7F2]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-8 rounded-3xl bg-[#F6EFE6] border border-[#E8DEC8] shadow-sm">
@@ -73,18 +84,24 @@ export default function Page() {
             </div>
 
             <button
-              onClick={scrollToStudio}
-              className="flex items-center gap-2 rounded-full bg-[#79553D] px-6 py-3 text-sm font-semibold text-white hover:bg-[#64442F] transition-all shrink-0 shadow-sm"
+              onClick={handleStartNewProject}
+              className="group flex items-center gap-2 rounded-full bg-[#79553D] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#64442F] hover:shadow-md active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#79553D] focus:ring-offset-2 transition-all duration-200 shrink-0 cursor-pointer"
+              aria-label="Start New Project"
             >
               <span>Start New Project</span>
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </button>
           </div>
         </div>
-
-        {/* Embedded Walkthrough Studio Flow */}
-        <WalkthroughStudio />
       </section>
+
+      {/* Dedicated Immersive Full-Screen Walkthrough Studio View */}
+      <WalkthroughStudio
+        ref={studioRef}
+        isOpen={isStudioOpen}
+        onClose={() => setIsStudioOpen(false)}
+        isFullScreen
+      />
 
       {/* Info Section: For Homeowners */}
       <section id="for-homeowners" className="py-20 bg-[#F6EFE6] border-t border-[#E8DEC8]">
@@ -132,7 +149,7 @@ export default function Page() {
           </p>
           <div className="mt-8">
             <button
-              onClick={scrollToStudio}
+              onClick={handleStartNewProject}
               className="inline-flex items-center gap-2 rounded-full bg-[#79553D] px-8 py-3.5 text-base font-semibold text-white shadow-md hover:bg-[#64442F] transition-all"
             >
               <span>Create Designer Project</span>
@@ -172,7 +189,7 @@ export default function Page() {
       <WatchWalkthroughModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        onStartStudio={scrollToStudio}
+        onStartStudio={handleStartNewProject}
       />
     </div>
   );
