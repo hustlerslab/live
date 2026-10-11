@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight, Menu, User, X } from "lucide-react";
 
@@ -11,12 +12,14 @@ interface NavbarProps {
 interface UserSession {
   name: string;
   email: string;
-  role: "homeowner" | "designer";
+  role: "homeowner" | "designer" | "builder";
 }
 
 export function Navbar({ onGetStarted }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     try {
@@ -31,9 +34,13 @@ export function Navbar({ onGetStarted }: NavbarProps) {
 
   const handleNavClick = (targetId: string) => {
     setMobileMenuOpen(false);
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    if (pathname === "/") {
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      router.push(`/#${targetId}`);
     }
   };
 
@@ -42,9 +49,13 @@ export function Navbar({ onGetStarted }: NavbarProps) {
     if (onGetStarted) {
       onGetStarted();
     } else {
-      const studioElement = document.getElementById("walkthrough-studio");
-      if (studioElement) {
-        studioElement.scrollIntoView({ behavior: "smooth" });
+      if (pathname === "/") {
+        const studioElement = document.getElementById("walkthrough-studio");
+        if (studioElement) {
+          studioElement.scrollIntoView({ behavior: "smooth" });
+        }
+      } else {
+        router.push("/login");
       }
     }
   };
@@ -60,31 +71,43 @@ export function Navbar({ onGetStarted }: NavbarProps) {
         </Link>
 
         {/* Center Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-6 lg:gap-8">
           <button
             onClick={() => handleNavClick("how-it-works")}
-            className="text-sm font-medium text-[#4A423B] transition-colors hover:text-[#1C1613]"
+            className="text-sm font-medium text-[#4A423B] transition-colors hover:text-[#1C1613] cursor-pointer"
           >
             How It Works
           </button>
           <button
             onClick={() => handleNavClick("for-homeowners")}
-            className="text-sm font-medium text-[#4A423B] transition-colors hover:text-[#1C1613]"
+            className="text-sm font-medium text-[#4A423B] transition-colors hover:text-[#1C1613] cursor-pointer"
           >
             For Homeowners
           </button>
-          <button
-            onClick={() => handleNavClick("for-designers")}
-            className="text-sm font-medium text-[#4A423B] transition-colors hover:text-[#1C1613]"
+          <Link
+            href="/designers"
+            className={`text-sm font-medium transition-colors hover:text-[#1C1613] ${
+              pathname === "/designers" ? "text-[#79553D] font-semibold" : "text-[#4A423B]"
+            }`}
           >
             For Designers
-          </button>
-          <button
-            onClick={() => handleNavClick("about")}
-            className="text-sm font-medium text-[#4A423B] transition-colors hover:text-[#1C1613]"
+          </Link>
+          <Link
+            href="/builders"
+            className={`text-sm font-medium transition-colors hover:text-[#1C1613] ${
+              pathname === "/builders" ? "text-[#79553D] font-semibold" : "text-[#4A423B]"
+            }`}
+          >
+            For Builders
+          </Link>
+          <Link
+            href="/about"
+            className={`text-sm font-medium transition-colors hover:text-[#1C1613] ${
+              pathname === "/about" ? "text-[#79553D] font-semibold" : "text-[#4A423B]"
+            }`}
           >
             About
-          </button>
+          </Link>
         </nav>
 
         {/* Right Actions */}
@@ -107,7 +130,7 @@ export function Navbar({ onGetStarted }: NavbarProps) {
 
           <button
             onClick={handleGetStartedClick}
-            className="group flex items-center gap-2 rounded-full bg-[#79553D] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#64442F] hover:shadow-md active:scale-[0.98]"
+            className="group flex items-center gap-2 rounded-full bg-[#79553D] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#64442F] hover:shadow-md active:scale-[0.98] cursor-pointer"
           >
             <span>Get Started</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -140,18 +163,27 @@ export function Navbar({ onGetStarted }: NavbarProps) {
             >
               For Homeowners
             </button>
-            <button
-              onClick={() => handleNavClick("for-designers")}
+            <Link
+              href="/designers"
+              onClick={() => setMobileMenuOpen(false)}
               className="text-left text-base font-medium text-[#2C241E]"
             >
               For Designers
-            </button>
-            <button
-              onClick={() => handleNavClick("about")}
+            </Link>
+            <Link
+              href="/builders"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-left text-base font-medium text-[#2C241E]"
+            >
+              For Builders
+            </Link>
+            <Link
+              href="/about"
+              onClick={() => setMobileMenuOpen(false)}
               className="text-left text-base font-medium text-[#2C241E]"
             >
               About
-            </button>
+            </Link>
             <div className="pt-3 border-t border-[#EFE7DC] flex flex-col gap-3">
               {userSession ? (
                 <div className="flex items-center gap-2.5 px-2 py-1">

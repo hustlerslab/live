@@ -18,10 +18,11 @@ import {
   ShieldCheck,
   Sparkles,
   UserCheck,
+  HardHat,
 } from "lucide-react";
 
 type AuthMode = "signin" | "signup" | "forgot";
-type UserRole = "homeowner" | "designer";
+type UserRole = "homeowner" | "designer" | "builder";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -103,8 +104,18 @@ export default function LoginPage() {
 
   const handleQuickDemo = (selectedRole: UserRole) => {
     setRole(selectedRole);
-    const demoName = selectedRole === "homeowner" ? "Alex Vance" : "Studio Minimal";
-    const demoEmail = selectedRole === "homeowner" ? "alex@allure.design" : "studio@allure.design";
+    const demoName =
+      selectedRole === "homeowner"
+        ? "Alex Vance"
+        : selectedRole === "designer"
+        ? "Studio Minimal"
+        : "Apex BuildCorp";
+    const demoEmail =
+      selectedRole === "homeowner"
+        ? "alex@allure.design"
+        : selectedRole === "designer"
+        ? "studio@allure.design"
+        : "builder@allure.design";
 
     setEmail(demoEmail);
     setPassword("demo123456");
@@ -250,18 +261,18 @@ export default function LoginPage() {
               {authMode === "signin"
                 ? "Access your saved spatial designs, moodboards, and 3D walkthroughs."
                 : authMode === "signup"
-                ? "Join thousands of homeowners and interior designers visualizing spaces."
+                ? "Join thousands of homeowners, designers, and builders visualizing spaces."
                 : "Enter your account email to receive a password reset link."}
             </p>
           </div>
 
-          {/* Role Selection Tabs (Homeowner vs Interior Designer) */}
+          {/* Role Selection Tabs (Homeowner vs Designer vs Builder) */}
           {authMode !== "forgot" && (
             <div className="mb-5 rounded-xl bg-[#EFE7DC] p-1 flex gap-1 border border-[#E5DCD0]">
               <button
                 type="button"
                 onClick={() => setRole("homeowner")}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-bold transition-all ${
                   role === "homeowner"
                     ? "bg-white text-[#1C1613] shadow-xs"
                     : "text-[#5A4F46] hover:text-[#1C1613]"
@@ -273,14 +284,26 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setRole("designer")}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-bold transition-all ${
                   role === "designer"
                     ? "bg-white text-[#1C1613] shadow-xs"
                     : "text-[#5A4F46] hover:text-[#1C1613]"
                 }`}
               >
                 <Layout className="h-3.5 w-3.5 text-[#79553D]" />
-                <span>Interior Designer</span>
+                <span>Designer</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("builder")}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-bold transition-all ${
+                  role === "builder"
+                    ? "bg-white text-[#1C1613] shadow-xs"
+                    : "text-[#5A4F46] hover:text-[#1C1613]"
+                }`}
+              >
+                <HardHat className="h-3.5 w-3.5 text-[#79553D]" />
+                <span>Builder</span>
               </button>
             </div>
           )}

@@ -9,6 +9,7 @@ import { LandingPaths } from "@/components/landing-paths";
 import { LandingStyleExplorer } from "@/components/landing-style-explorer";
 import { LandingEstimator } from "@/components/landing-estimator";
 import { LandingFeatures } from "@/components/landing-features";
+import { LandingBuilders } from "@/components/landing-builders";
 import { WatchWalkthroughModal } from "@/components/watch-walkthrough-modal";
 import { WalkthroughStudio, type WalkthroughStudioHandle } from "@/features/walkthrough-studio/components/walkthrough-studio";
 import { Sparkles, ArrowRight, CheckCircle2, ShieldCheck, HeartHandshake } from "lucide-react";
@@ -17,7 +18,7 @@ export default function Page() {
   const router = useRouter();
   const [isStudioOpen, setIsStudioOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [, setSelectedPath] = useState<"space" | "designer" | null>(null);
+  const [, setSelectedPath] = useState<"space" | "designer" | "builder" | null>(null);
   const studioRef = useRef<WalkthroughStudioHandle>(null);
 
   const handleNavigateToLogin = () => {
@@ -34,9 +35,15 @@ export default function Page() {
     }, 50);
   };
 
-  const handleSelectPath = (path: "space" | "designer") => {
+  const handleSelectPath = (path: "space" | "designer" | "builder") => {
     setSelectedPath(path);
-    handleStartNewProject();
+    if (path === "designer") {
+      router.push("/designers");
+    } else if (path === "builder") {
+      router.push("/builders");
+    } else {
+      handleStartNewProject();
+    }
   };
 
   return (
@@ -159,6 +166,9 @@ export default function Page() {
         </div>
       </section>
 
+      {/* Dedicated Info Section: For Builders */}
+      <LandingBuilders onStartStudio={handleStartNewProject} />
+
       {/* Footer */}
       <footer id="about" className="py-14 bg-[#1C1613] text-[#EFE6DA]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -175,6 +185,7 @@ export default function Page() {
               <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
               <a href="#for-homeowners" className="hover:text-white transition-colors">For Homeowners</a>
               <a href="#for-designers" className="hover:text-white transition-colors">For Designers</a>
+              <a href="#for-builders" className="hover:text-white transition-colors">For Builders</a>
               <a href="#walkthrough-studio" className="hover:text-white transition-colors">Studio</a>
             </div>
           </div>
